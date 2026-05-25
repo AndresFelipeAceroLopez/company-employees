@@ -1,6 +1,8 @@
 package com.companyemployees.infrastructure.persistence.mongo;
 
 import com.companyemployees.application.ports.transaction.UnitOfWork;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -18,6 +20,7 @@ import java.util.function.Supplier;
 @Component
 public class MongoUnitOfWork implements UnitOfWork {
 
+    private static final Logger log = LoggerFactory.getLogger(MongoUnitOfWork.class);
     private final TransactionTemplate transactionTemplate;
 
     public MongoUnitOfWork(PlatformTransactionManager transactionManager) {
@@ -26,11 +29,26 @@ public class MongoUnitOfWork implements UnitOfWork {
 
     @Override
     public <T> T execute(Supplier<T> action) {
-        return transactionTemplate.execute(status -> action.get());
+        log.info("Inicio de una transacción");
+        try {
+            T result = transactionTemplate.execute(status -> action.get());
+            log.info("Confirmación de una transacción");
+            return result;
+        } catch (Exception e) {
+            log.error("Rollback de una transacción. Motivo: {}", e.getMessage());
+            throw e;
+        }
     }
 
     @Override
     public void execute(Runnable action) {
-        transactionTemplate.executeWithoutResult(status -> action.run());
+        log.info("Inicio de una transacción");
+        try {
+            transactionTemplate.executeWithoutResult(status -> action.run());
+            log.info("Confirmación de una transacción");
+        } catch (Exception e) {
+            log.error("Rollback de una transacción. Motivo: {}", e.getMessage());
+            throw e;
+        }
     }
 }

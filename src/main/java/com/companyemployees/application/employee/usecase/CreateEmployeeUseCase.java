@@ -54,6 +54,8 @@ public class CreateEmployeeUseCase {
                     command.cargo(), command.salario(), company.getId());
 
             Employee saved = employeeRepository.save(employee);
+            log.info("Creación de un empleado: {} {} con ID: {} en compañía: {}", 
+                    saved.getNombre(), saved.getApellido(), saved.getId().value(), command.companiaId());
 
             // 4. Actualizar contador de la compañía (Unit of Work: ambas ops en la misma tx)
             company.increaseEmployeeCount();

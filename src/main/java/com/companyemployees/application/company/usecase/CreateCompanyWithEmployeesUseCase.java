@@ -45,19 +45,19 @@ public class CreateCompanyWithEmployeesUseCase {
         return unitOfWork.execute(() -> {
             try {
                 // 1. Crear y guardar la compañía
-                log.debug("Creando compañía: {}", command.nombre());
+                log.info("Creando compañía: {}", command.nombre());
                 Company company = Company.create(
                         command.nombre(),
                         command.direccion(),
                         command.telefono()
                 );
                 Company savedCompany = companyRepository.save(company);
-                log.info("Compañía creada con ID: {}", savedCompany.getId().value());
+                log.info("Creación de una compañía: '{}' con ID: {}", savedCompany.getNombre(), savedCompany.getId().value());
 
                 // 2. Crear y guardar los empleados
                 List<Employee> savedEmployees = new ArrayList<>();
                 for (EmployeeData empData : command.empleados()) {
-                    log.debug("Creando empleado: {} {}", empData.nombre(), empData.apellido());
+                    log.info("Creando empleado: {} {}", empData.nombre(), empData.apellido());
                     
                     Employee employee = Employee.create(
                             empData.nombre(),
@@ -70,7 +70,8 @@ public class CreateCompanyWithEmployeesUseCase {
                     
                     Employee savedEmployee = employeeRepository.save(employee);
                     savedEmployees.add(savedEmployee);
-                    log.debug("Empleado creado con ID: {}", savedEmployee.getId().value());
+                    log.info("Creación de un empleado: {} {} con ID: {} en compañía: {}", 
+                            savedEmployee.getNombre(), savedEmployee.getApellido(), savedEmployee.getId().value(), savedCompany.getId().value());
                 }
 
                 log.info("Transacción completada: compañía y {} empleados creados exitosamente",

@@ -16,4 +16,5 @@
 @SET JAVA_CMD="%JAVA_HOME%\bin\java.exe"
 @IF NOT EXIST %JAVA_CMD% SET JAVA_CMD=java
 
-@%JAVA_CMD% -classpath %MAVEN_WRAPPER_JAR% "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR%" org.apache.maven.wrapper.MavenWrapperMain %*
+@SET MAVEN_PROJECTBASEDIR_NO_SLASH=%MAVEN_PROJECTBASEDIR:~0,-1%
+@%JAVA_CMD% -classpath %MAVEN_WRAPPER_JAR% "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR_NO_SLASH%" org.apache.maven.wrapper.MavenWrapperMain %*

@@ -2,8 +2,10 @@ package com.companyemployees.api.exception;
 
 import com.companyemployees.domain.common.DomainException;
 import com.companyemployees.domain.common.EntityNotFoundException;
+import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -79,14 +81,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler({DataAccessException.class, MongoException.class})
+    public ResponseEntity<ErrorResponse> handleDatabaseExceptions(Exception ex, HttpServletRequest request) {
+        log.error("Errores de base de datos en {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ErrorResponse response = new ErrorResponse(
+                "https://api.companyemployees.com/errors/database-error",
+                "Database Error",
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Errores de base de datos: " + ex.getMessage(),
+                null
+        );
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
-        log.error("Internal server error on {}", request.getRequestURI(), ex);
+        log.error("Errores inesperados en {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         ErrorResponse response = new ErrorResponse(
                 "https://api.companyemployees.com/errors/internal-error",
                 "Internal Server Error",
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred",
+                "Errores inesperados: " + ex.getMessage(),
                 null
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

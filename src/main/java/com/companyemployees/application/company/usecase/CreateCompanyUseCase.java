@@ -29,7 +29,7 @@ public class CreateCompanyUseCase {
         return unitOfWork.execute(() -> {
             Company company = Company.create(command.nombre(), command.direccion(), command.telefono());
             Company saved = companyRepository.save(company);
-            log.info("Compania creada con id: {}", saved.getId().value());
+            log.info("Creación de una compañía: '{}' con ID: {}", saved.getNombre(), saved.getId().value());
             return CompanyResponse.from(saved);
         });
     }
