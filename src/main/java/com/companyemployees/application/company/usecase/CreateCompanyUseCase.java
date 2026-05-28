@@ -4,7 +4,6 @@ import com.companyemployees.application.company.dto.CompanyResponse;
 import com.companyemployees.application.company.dto.CreateCompanyCommand;
 import com.companyemployees.application.ports.repository.CompanyRepository;
 import com.companyemployees.application.ports.transaction.UnitOfWork;
-import com.companyemployees.domain.common.DomainException;
 import com.companyemployees.domain.company.Company;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

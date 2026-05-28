@@ -29,26 +29,19 @@ public class MongoUnitOfWork implements UnitOfWork {
 
     @Override
     public <T> T execute(Supplier<T> action) {
-        log.info("Inicio de una transacción");
+        log.info("Inicio de una transaccion");
         try {
             T result = transactionTemplate.execute(status -> action.get());
-            log.info("Confirmación de una transacción");
+            log.info("Confirmacion de una transaccion");
             return result;
         } catch (Exception e) {
-            log.error("Rollback de una transacción. Motivo: {}", e.getMessage());
+            log.error("Rollback de una transaccion. Motivo: {}", e.getMessage());
             throw e;
         }
     }
 
     @Override
     public void execute(Runnable action) {
-        log.info("Inicio de una transacción");
-        try {
-            transactionTemplate.executeWithoutResult(status -> action.run());
-            log.info("Confirmación de una transacción");
-        } catch (Exception e) {
-            log.error("Rollback de una transacción. Motivo: {}", e.getMessage());
-            throw e;
-        }
+        execute(() -> { action.run(); return null; });
     }
 }

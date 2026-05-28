@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface SpringDataEmployeeMongoRepository extends MongoRepository<EmployeeDocument, String> {
     Optional<EmployeeDocument> findByCorreo(String correo);
     List<EmployeeDocument> findByCompaniaId(String companiaId);
+    long countByCompaniaId(String companiaId);
 }

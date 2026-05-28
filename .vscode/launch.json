@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CompanyEmployeesApplication",
+            "request": "launch",
+            "mainClass": "com.companyemployees.CompanyEmployeesApplication",
+            "projectName": "company-employees",
+            "args": "--spring.profiles.active=local"
+        }
+    ]
+}
