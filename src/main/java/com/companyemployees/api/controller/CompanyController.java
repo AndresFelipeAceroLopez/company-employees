@@ -4,8 +4,13 @@ import com.companyemployees.api.request.CreateCompanyRequest;
 import com.companyemployees.api.request.CreateCompanyWithEmployeesRequest;
 import com.companyemployees.api.request.UpdateCompanyRequest;
 import com.companyemployees.api.response.CompanyApiResponse;
+import com.companyemployees.api.response.CompanyWithEmployeesApiResponse;
+import com.companyemployees.api.response.EmployeeApiResponse;
+import com.companyemployees.api.response.PagedResponse;
+import com.companyemployees.application.common.pagination.PageCriteria;
 import com.companyemployees.application.company.dto.CompanyResponse;
 import com.companyemployees.application.company.dto.CreateCompanyCommand;
+import com.companyemployees.application.company.dto.CreateCompanyWithEmployeesCommand;
 import com.companyemployees.application.company.dto.UpdateCompanyCommand;
 import com.companyemployees.application.company.usecase.CreateCompanyUseCase;
 import com.companyemployees.application.company.usecase.CreateCompanyWithEmployeesUseCase;
@@ -13,14 +18,23 @@ import com.companyemployees.application.company.usecase.DeleteCompanyUseCase;
 import com.companyemployees.application.company.usecase.GetCompanyUseCase;
 import com.companyemployees.application.company.usecase.UpdateCompanyUseCase;
 import com.companyemployees.application.employee.dto.EmployeeResponse;
-import com.companyemployees.application.employee.usecase.GetCompanyEmployeesUseCase;
-import com.companyemployees.api.response.EmployeeApiResponse;
+import com.companyemployees.application.employee.usecase.GetPagedCompanyEmployeesUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/companias")
@@ -30,7 +44,7 @@ public class CompanyController {
     private final GetCompanyUseCase getCompanyUseCase;
     private final UpdateCompanyUseCase updateCompanyUseCase;
     private final DeleteCompanyUseCase deleteCompanyUseCase;
-    private final GetCompanyEmployeesUseCase getCompanyEmployeesUseCase;
+    private final GetPagedCompanyEmployeesUseCase getPagedCompanyEmployeesUseCase;
     private final CreateCompanyWithEmployeesUseCase createCompanyWithEmployeesUseCase;
 
     public CompanyController(
@@ -38,13 +52,13 @@ public class CompanyController {
             GetCompanyUseCase getCompanyUseCase,
             UpdateCompanyUseCase updateCompanyUseCase,
             DeleteCompanyUseCase deleteCompanyUseCase,
-            GetCompanyEmployeesUseCase getCompanyEmployeesUseCase,
+            GetPagedCompanyEmployeesUseCase getPagedCompanyEmployeesUseCase,
             CreateCompanyWithEmployeesUseCase createCompanyWithEmployeesUseCase) {
         this.createCompanyUseCase = createCompanyUseCase;
         this.getCompanyUseCase = getCompanyUseCase;
         this.updateCompanyUseCase = updateCompanyUseCase;
         this.deleteCompanyUseCase = deleteCompanyUseCase;
-        this.getCompanyEmployeesUseCase = getCompanyEmployeesUseCase;
+        this.getPagedCompanyEmployeesUseCase = getPagedCompanyEmployeesUseCase;
         this.createCompanyWithEmployeesUseCase = createCompanyWithEmployeesUseCase;
     }
 
@@ -63,65 +77,65 @@ public class CompanyController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','USUARIO')")
     public ResponseEntity<CompanyApiResponse> create(@Valid @RequestBody CreateCompanyRequest request) {
-        CreateCompanyCommand command = new CreateCompanyCommand(request.nombre(), request.direccion(), request.telefono());
+        CreateCompanyCommand command = new CreateCompanyCommand(
+                request.nombre(), request.direccion(), request.telefono());
         CompanyResponse created = createCompanyUseCase.execute(command);
         return ResponseEntity.created(URI.create("/api/companias/" + created.id()))
                 .body(mapToApiResponse(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CompanyApiResponse> update(@PathVariable String id, @Valid @RequestBody UpdateCompanyRequest request) {
-        UpdateCompanyCommand command = new UpdateCompanyCommand(request.nombre(), request.direccion(), request.telefono());
+    @PreAuthorize("hasAnyRole('ADMIN','USUARIO')")
+    public ResponseEntity<CompanyApiResponse> update(@PathVariable String id,
+                                                     @Valid @RequestBody UpdateCompanyRequest request) {
+        UpdateCompanyCommand command = new UpdateCompanyCommand(
+                request.nombre(), request.direccion(), request.telefono());
         CompanyResponse updated = updateCompanyUseCase.execute(id, command);
         return ResponseEntity.ok(mapToApiResponse(updated));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         deleteCompanyUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/empleados")
-    public ResponseEntity<List<EmployeeApiResponse>> getEmployees(@PathVariable String id) {
-        List<EmployeeApiResponse> response = getCompanyEmployeesUseCase.execute(id).stream()
-                .map(this::mapEmployeeToApiResponse)
-                .toList();
-        return ResponseEntity.ok(response);
+    public CompletableFuture<ResponseEntity<PagedResponse<EmployeeApiResponse>>> getEmployees(
+            @PathVariable String id,
+            @RequestParam(required = false) Integer pagina,
+            @RequestParam(required = false) Integer tamano,
+            @RequestParam(required = false) String orden,
+            @RequestParam(required = false) String dir,
+            @RequestParam(required = false) String buscar) {
+        PageCriteria criteria = PageCriteria.of(pagina, tamano, orden, dir, buscar);
+        return getPagedCompanyEmployeesUseCase.getPagedAsync(id, criteria)
+                .thenApply(result -> ResponseEntity.ok(PagedResponse.from(result, this::mapEmployeeToApiResponse)));
     }
 
-    /**
-     * Endpoint transaccional obligatorio: Crear compañía con empleados.
-     * Demuestra el uso de Unit of Work.
-     * Si falla la creación de un empleado, no se guarda nada.
-     */
     @PostMapping("/con-empleados")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CompanyWithEmployeesApiResponse> createWithEmployees(
             @Valid @RequestBody CreateCompanyWithEmployeesRequest request) {
-        
-        var command = new CreateCompanyWithEmployeesUseCase.CreateCompanyWithEmployeesCommand(
-                request.getNombre(),
-                request.getDireccion(),
-                request.getTelefono(),
-                request.getEmpleados().stream()
-                        .map(e -> new CreateCompanyWithEmployeesUseCase.EmployeeData(
-                                e.getNombre(),
-                                e.getApellido(),
-                                e.getCorreo(),
-                                e.getCargo(),
-                                e.getSalario()
-                        ))
+
+        CreateCompanyWithEmployeesCommand command = new CreateCompanyWithEmployeesCommand(
+                request.nombre(),
+                request.direccion(),
+                request.telefono(),
+                request.empleados().stream()
+                        .map(e -> new CreateCompanyWithEmployeesCommand.EmployeeData(
+                                e.nombre(), e.apellido(), e.correo(), e.cargo(), e.salario()))
                         .toList()
         );
 
         var result = createCompanyWithEmployeesUseCase.execute(command);
 
-        var response = new CompanyWithEmployeesApiResponse(
+        CompanyWithEmployeesApiResponse response = new CompanyWithEmployeesApiResponse(
                 mapToApiResponse(result.compania()),
-                result.empleados().stream()
-                        .map(this::mapEmployeeToApiResponse)
-                        .toList()
+                result.empleados().stream().map(this::mapEmployeeToApiResponse).toList()
         );
 
         return ResponseEntity.created(URI.create("/api/companias/" + result.compania().id()))
@@ -151,10 +165,4 @@ public class CompanyController {
                 dto.status()
         );
     }
-
-    // DTO para respuesta del endpoint transaccional
-    public record CompanyWithEmployeesApiResponse(
-            CompanyApiResponse compania,
-            List<EmployeeApiResponse> empleados
-    ) {}
 }

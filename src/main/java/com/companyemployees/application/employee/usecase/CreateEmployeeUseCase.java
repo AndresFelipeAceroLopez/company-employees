@@ -5,7 +5,7 @@ import com.companyemployees.application.employee.dto.EmployeeResponse;
 import com.companyemployees.application.ports.repository.CompanyRepository;
 import com.companyemployees.application.ports.repository.EmployeeRepository;
 import com.companyemployees.application.ports.transaction.UnitOfWork;
-import com.companyemployees.domain.common.DomainException;
+import com.companyemployees.domain.common.DuplicateResourceException;
 import com.companyemployees.domain.common.EntityNotFoundException;
 import com.companyemployees.domain.company.Company;
 import com.companyemployees.domain.company.CompanyId;
@@ -43,9 +43,10 @@ public class CreateEmployeeUseCase {
                     .orElseThrow(() -> new EntityNotFoundException(
                             "Compania no encontrada con id: " + command.companiaId()));
 
-            // 2. Verificar que el correo no esté duplicado (409 si existe)
+            // 2. Verificar que el correo no este duplicado (409 si existe)
             employeeRepository.findByCorreo(command.correo()).ifPresent(e -> {
-                throw new DomainException("Ya existe un empleado con el correo: " + command.correo());
+                throw new DuplicateResourceException(
+                        "Ya existe un empleado con el correo: " + command.correo());
             });
 
             // 3. Crear el empleado

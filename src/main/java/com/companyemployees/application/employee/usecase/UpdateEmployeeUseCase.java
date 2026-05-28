@@ -4,7 +4,7 @@ import com.companyemployees.application.employee.dto.EmployeeResponse;
 import com.companyemployees.application.employee.dto.UpdateEmployeeCommand;
 import com.companyemployees.application.ports.repository.EmployeeRepository;
 import com.companyemployees.application.ports.transaction.UnitOfWork;
-import com.companyemployees.domain.common.DomainException;
+import com.companyemployees.domain.common.DuplicateResourceException;
 import com.companyemployees.domain.common.EntityNotFoundException;
 import com.companyemployees.domain.employee.Employee;
 import com.companyemployees.domain.employee.EmployeeId;
@@ -30,10 +30,11 @@ public class UpdateEmployeeUseCase {
             Employee employee = employeeRepository.findById(new EmployeeId(id))
                     .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado con id: " + id));
 
-            // Verificar correo duplicado si cambió
+            // Verificar correo duplicado si cambio
             if (!employee.getCorreo().equals(command.correo())) {
                 employeeRepository.findByCorreo(command.correo()).ifPresent(e -> {
-                    throw new DomainException("Ya existe un empleado con el correo: " + command.correo());
+                    throw new DuplicateResourceException(
+                            "Ya existe un empleado con el correo: " + command.correo());
                 });
             }
 

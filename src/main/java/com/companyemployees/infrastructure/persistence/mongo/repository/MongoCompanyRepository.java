@@ -58,6 +58,6 @@ public class MongoCompanyRepository implements CompanyRepository {
 
     @Override
     public long countEmployees(CompanyId id) {
-        return employeeMongoRepository.findByCompaniaId(id.value()).size();
+        return employeeMongoRepository.countByCompaniaId(id.value());
     }
 }
