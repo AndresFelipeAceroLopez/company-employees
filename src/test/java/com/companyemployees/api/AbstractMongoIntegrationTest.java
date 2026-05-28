@@ -105,7 +105,7 @@ abstract class AbstractMongoIntegrationTest {
                         .content(toJson(body)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        return objectMapper.readTree(res.getResponse().getContentAsString()).get("id").asText();
+        return idFromLocation(res);
     }
 
     protected String createEmployee(String token, String companiaId,
@@ -123,6 +123,12 @@ abstract class AbstractMongoIntegrationTest {
                         .content(toJson(body)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        return objectMapper.readTree(res.getResponse().getContentAsString()).get("id").asText();
+        return idFromLocation(res);
+    }
+
+    /** El id del recurso creado se expone via header Location (no en el body, por seguridad). */
+    private String idFromLocation(MvcResult res) {
+        String location = res.getResponse().getHeader("Location");
+        return location.substring(location.lastIndexOf('/') + 1);
     }
 }

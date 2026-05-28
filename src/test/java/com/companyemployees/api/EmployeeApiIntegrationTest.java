@@ -66,7 +66,9 @@ class EmployeeApiIntegrationTest extends AbstractMongoIntegrationTest {
         getAsync("/api/companias/" + companiaId + "/empleados", admin, "pagina", "1", "tamano", "10")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.datos[0].companiaId").value(companiaId));
+                .andExpect(jsonPath("$.datos[0].apellido").value("Garcia"))
+                // Por seguridad el DTO publico no expone la companiaId del empleado.
+                .andExpect(jsonPath("$.datos[0].companiaId").doesNotExist());
     }
 
     @Test

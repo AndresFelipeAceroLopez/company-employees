@@ -154,13 +154,11 @@ public class EmployeeController {
 
     private EmployeeApiResponse mapToApiResponse(EmployeeResponse dto) {
         return new EmployeeApiResponse(
-                dto.id(),
                 dto.nombre(),
                 dto.apellido(),
                 dto.correo(),
                 dto.cargo(),
                 dto.salario(),
-                dto.companiaId(),
                 dto.status()
         );
     }

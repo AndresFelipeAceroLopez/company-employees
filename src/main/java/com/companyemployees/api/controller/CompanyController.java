@@ -144,7 +144,6 @@ public class CompanyController {
 
     private CompanyApiResponse mapToApiResponse(CompanyResponse dto) {
         return new CompanyApiResponse(
-                dto.id(),
                 dto.nombre(),
                 dto.direccion(),
                 dto.telefono(),
@@ -155,13 +154,11 @@ public class CompanyController {
 
     private EmployeeApiResponse mapEmployeeToApiResponse(EmployeeResponse dto) {
         return new EmployeeApiResponse(
-                dto.id(),
                 dto.nombre(),
                 dto.apellido(),
                 dto.correo(),
                 dto.cargo(),
                 dto.salario(),
-                dto.companiaId(),
                 dto.status()
         );
     }
