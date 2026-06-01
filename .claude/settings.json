@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw.cmd -q -o compile)",
+      "Bash(./mvnw.cmd -q -o spring-boot:run)",
+      "Bash(tee logs/run-test.log)",
+      "Bash(break)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8080/api/companias)",
+      "Bash(SERVER_PORT=8081 ./mvnw.cmd -q -o spring-boot:run -Dspring-boot.run.arguments=\"--server.port=8081\")",
+      "Bash(curl -s -X POST http://localhost:8081/api/auth/login -H 'Content-Type: application/json' -d '{\"correo\":\"admin@company.local\",\"password\":\"Admin123!\"}')",
+      "Bash(./mvnw.cmd -q -o test -Dtest=CreateCompaniesBatchUseCaseTest)",
+      "Bash(./mvnw.cmd -o test -Dtest=CreateCompaniesBatchUseCaseTest)"
+    ]
+  }
+}

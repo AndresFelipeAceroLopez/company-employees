@@ -1,5 +1,6 @@
 package com.companyemployees.api.controller;
 
+import com.companyemployees.api.request.CreateCompaniesBatchRequest;
 import com.companyemployees.api.request.CreateCompanyRequest;
 import com.companyemployees.api.request.CreateCompanyWithEmployeesRequest;
 import com.companyemployees.api.request.UpdateCompanyRequest;
@@ -12,6 +13,7 @@ import com.companyemployees.application.company.dto.CompanyResponse;
 import com.companyemployees.application.company.dto.CreateCompanyCommand;
 import com.companyemployees.application.company.dto.CreateCompanyWithEmployeesCommand;
 import com.companyemployees.application.company.dto.UpdateCompanyCommand;
+import com.companyemployees.application.company.usecase.CreateCompaniesBatchUseCase;
 import com.companyemployees.application.company.usecase.CreateCompanyUseCase;
 import com.companyemployees.application.company.usecase.CreateCompanyWithEmployeesUseCase;
 import com.companyemployees.application.company.usecase.DeleteCompanyUseCase;
@@ -46,6 +48,7 @@ public class CompanyController {
     private final DeleteCompanyUseCase deleteCompanyUseCase;
     private final GetPagedCompanyEmployeesUseCase getPagedCompanyEmployeesUseCase;
     private final CreateCompanyWithEmployeesUseCase createCompanyWithEmployeesUseCase;
+    private final CreateCompaniesBatchUseCase createCompaniesBatchUseCase;
 
     public CompanyController(
             CreateCompanyUseCase createCompanyUseCase,
@@ -53,13 +56,15 @@ public class CompanyController {
             UpdateCompanyUseCase updateCompanyUseCase,
             DeleteCompanyUseCase deleteCompanyUseCase,
             GetPagedCompanyEmployeesUseCase getPagedCompanyEmployeesUseCase,
-            CreateCompanyWithEmployeesUseCase createCompanyWithEmployeesUseCase) {
+            CreateCompanyWithEmployeesUseCase createCompanyWithEmployeesUseCase,
+            CreateCompaniesBatchUseCase createCompaniesBatchUseCase) {
         this.createCompanyUseCase = createCompanyUseCase;
         this.getCompanyUseCase = getCompanyUseCase;
         this.updateCompanyUseCase = updateCompanyUseCase;
         this.deleteCompanyUseCase = deleteCompanyUseCase;
         this.getPagedCompanyEmployeesUseCase = getPagedCompanyEmployeesUseCase;
         this.createCompanyWithEmployeesUseCase = createCompanyWithEmployeesUseCase;
+        this.createCompaniesBatchUseCase = createCompaniesBatchUseCase;
     }
 
     @GetMapping
@@ -84,6 +89,19 @@ public class CompanyController {
         CompanyResponse created = createCompanyUseCase.execute(command);
         return ResponseEntity.created(URI.create("/api/companias/" + created.id()))
                 .body(mapToApiResponse(created));
+    }
+
+    @PostMapping("/lote")
+    @PreAuthorize("hasAnyRole('ADMIN','USUARIO')")
+    public ResponseEntity<List<CompanyApiResponse>> createBatch(
+            @Valid @RequestBody CreateCompaniesBatchRequest request) {
+        List<CreateCompanyCommand> commands = request.companias().stream()
+                .map(r -> new CreateCompanyCommand(r.nombre(), r.direccion(), r.telefono()))
+                .toList();
+        List<CompanyApiResponse> response = createCompaniesBatchUseCase.execute(commands).stream()
+                .map(this::mapToApiResponse)
+                .toList();
+        return ResponseEntity.status(201).body(response);
     }
 
     @PutMapping("/{id}")
