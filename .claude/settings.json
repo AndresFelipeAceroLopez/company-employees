@@ -27,7 +27,12 @@
       "PowerShell(npm --version)",
       "PowerShell(\"limpio\")",
       "PowerShell(npm install)",
-      "PowerShell(npm run build)"
+      "PowerShell(npm run build)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\maria\\\\company-employees-front\"; git log --oneline -1; \"--- status ---\"; git status --short; \"--- tracked count ---\"; \\(git ls-files | Measure-Object -Line\\).Lines; \"--- node_modules ignorado? ---\"; git check-ignore node_modules dist)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\maria\\company-employees-front\\front",
+      "C:\\Users\\maria\\company-employees-front"
     ]
   }
 }
