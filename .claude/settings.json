@@ -9,7 +9,25 @@
       "Bash(SERVER_PORT=8081 ./mvnw.cmd -q -o spring-boot:run -Dspring-boot.run.arguments=\"--server.port=8081\")",
       "Bash(curl -s -X POST http://localhost:8081/api/auth/login -H 'Content-Type: application/json' -d '{\"correo\":\"admin@company.local\",\"password\":\"Admin123!\"}')",
       "Bash(./mvnw.cmd -q -o test -Dtest=CreateCompaniesBatchUseCaseTest)",
-      "Bash(./mvnw.cmd -o test -Dtest=CreateCompaniesBatchUseCaseTest)"
+      "Bash(./mvnw.cmd -o test -Dtest=CreateCompaniesBatchUseCaseTest)",
+      "Bash(./mvnw.cmd -q -o spring-boot:run -Dspring-boot.run.arguments=\"--server.port=8081\")",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" http://localhost:8081/actuator/health)",
+      "Bash(curl -s http://localhost:8081/v3/api-docs)",
+      "Bash(curl -s -i -X OPTIONS http://localhost:8081/api/auth/login -H 'Origin: http://localhost:5500' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type')",
+      "Bash(curl -s -i -X POST http://localhost:8081/api/auth/login -H 'Origin: http://localhost:5500' -H 'Content-Type: application/json' -d '{\"correo\":\"admin@company.local\",\"password\":\"Admin123!\"}')",
+      "Bash(curl -s -w '\\\\nHTTP %{http_code}\\\\n' -X POST http://localhost:8081/api/auth/login -H 'Content-Type: application/json' -d '{\"correo\":\"admin@company.local\",\"password\":\"malita\"}')",
+      "Bash(netstat -ano)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8080/actuator/health)",
+      "Bash(tee logs/run-8080.log)",
+      "Bash(curl -s -o /dev/null -w \"health HTTP %{http_code}\\\\n\" http://localhost:8080/actuator/health)",
+      "Bash(curl -s -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' -d '{\"correo\":\"admin@company.local\",\"password\":\"Admin123!\"}')",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" http://localhost:8080/api/companias)",
+      "Bash(curl -s -X POST http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"correo\":\"admin@company.local\",\"password\":\"Admin123!\"}')",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(\"limpio\")",
+      "PowerShell(npm install)",
+      "PowerShell(npm run build)"
     ]
   }
 }

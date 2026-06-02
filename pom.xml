@@ -29,6 +29,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Actuator: expone /actuator/health (estado del sistema y de MongoDB) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Data MongoDB (ODM - equivalente a EF Core pero para documentos) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

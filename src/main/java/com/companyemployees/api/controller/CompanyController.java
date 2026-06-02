@@ -162,6 +162,7 @@ public class CompanyController {
 
     private CompanyApiResponse mapToApiResponse(CompanyResponse dto) {
         return new CompanyApiResponse(
+                dto.id(),
                 dto.nombre(),
                 dto.direccion(),
                 dto.telefono(),
