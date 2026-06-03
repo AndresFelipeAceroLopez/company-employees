@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface CompanyRepository {
     Optional<Company> findById(CompanyId id);
     List<Company> findAll();
+    long count();
     Company save(Company company);
     void deleteById(CompanyId id);
     boolean existsById(CompanyId id);

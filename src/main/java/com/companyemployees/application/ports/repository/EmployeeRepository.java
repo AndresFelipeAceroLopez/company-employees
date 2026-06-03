@@ -20,6 +20,7 @@ public interface EmployeeRepository {
     Optional<Employee> findByCorreo(String correo);
     List<Employee> findByCompaniaId(CompanyId companiaId);
     List<Employee> findAll();
+    long count();
     Employee save(Employee employee);
     void deleteById(EmployeeId id);
     boolean existsById(EmployeeId id);

@@ -28,6 +28,10 @@ public class GetCompanyUseCase {
                 .toList();
     }
 
+    public long count() {
+        return companyRepository.count();
+    }
+
     public CompanyResponse getById(String id) {
         log.info("Buscando compania con id: {}", id);
         return companyRepository.findById(new CompanyId(id))

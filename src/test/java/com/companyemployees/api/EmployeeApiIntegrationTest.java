@@ -152,35 +152,48 @@ class EmployeeApiIntegrationTest extends AbstractMongoIntegrationTest {
     }
 
     @Test
-    void usuarioNoPropietarioRecibe403() throws Exception {
+    void usuarioConScopeLeerListaEmpleados200() throws Exception {
         String admin = tokenFor("admin@x.com", "ADMIN", null);
         String companiaA = createCompany(admin, "Compania A");
-        String companiaB = createCompany(admin, "Compania B");
-        String empEnB = createEmployee(admin, companiaB, "Ana", "Garcia", "ana@x.com");
+        createEmployee(admin, companiaA, "Ana", "Garcia", "ana@x.com");
 
-        // USUARIO pertenece a la compania A; intenta modificar un empleado de B.
+        // USUARIO tiene scope empleado:leer -> puede listar (autorizacion por scope, global).
         String usuario = tokenFor("user@x.com", "USUARIO", companiaA);
 
-        mockMvc.perform(patch("/api/empleados/" + empEnB)
+        getAsync("/api/empleados", usuario, "pagina", "1", "tamano", "10")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.datos[0].apellido").value("Garcia"));
+    }
+
+    @Test
+    void usuarioSinScopeCrearNoPuedeCrear403() throws Exception {
+        String admin = tokenFor("admin@x.com", "ADMIN", null);
+        String companiaA = createCompany(admin, "Compania A");
+        String usuario = tokenFor("user@x.com", "USUARIO", companiaA);
+
+        Map<String, Object> body = Map.of(
+                "nombre", "Ana", "apellido", "Garcia", "correo", "ana@x.com",
+                "cargo", "Dev", "salario", 3000000, "companiaId", companiaA);
+
+        mockMvc.perform(post("/api/empleados")
                         .header("Authorization", "Bearer " + usuario)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(Map.of("cargo", "Hacker"))))
+                        .content(toJson(body)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void usuarioPropietarioPuedeModificarYRecibe200() throws Exception {
+    void usuarioSinScopeActualizarNoPuedeModificar403() throws Exception {
         String admin = tokenFor("admin@x.com", "ADMIN", null);
         String companiaA = createCompany(admin, "Compania A");
         String empEnA = createEmployee(admin, companiaA, "Ana", "Garcia", "ana@x.com");
-
         String usuario = tokenFor("user@x.com", "USUARIO", companiaA);
 
         mockMvc.perform(patch("/api/empleados/" + empEnA)
                         .header("Authorization", "Bearer " + usuario)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(Map.of("cargo", "Lead"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cargo").value("Lead"));
+                .andExpect(status().isForbidden());
     }
 }

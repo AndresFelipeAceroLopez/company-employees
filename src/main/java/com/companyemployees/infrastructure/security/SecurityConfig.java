@@ -42,9 +42,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html",
                                 "/v3/api-docs/**", "/v3/api-docs",
                                 "/actuator/health").permitAll()
-                        // GET de companias y empleados: cualquier autenticado
+                        // Baseline: requiere autenticacion. El control fino por rol/policy
+                        // (companias solo ADMIN; empleados de USUARIO solo su compania) vive
+                        // en @PreAuthorize de cada metodo de los controllers.
                         .requestMatchers(HttpMethod.GET, "/api/companias/**", "/api/empleados/**").authenticated()
-                        // El resto pasa por @PreAuthorize en los controllers
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(eh -> eh

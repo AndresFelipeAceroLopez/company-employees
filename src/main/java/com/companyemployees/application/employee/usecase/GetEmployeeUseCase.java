@@ -30,6 +30,10 @@ public class GetEmployeeUseCase {
         return employeeRepository.findAll().stream().map(EmployeeResponse::from).toList();
     }
 
+    public long count() {
+        return employeeRepository.count();
+    }
+
     public EmployeeResponse getById(String id) {
         log.info("Buscando empleado con id: {}", id);
         return employeeRepository.findById(new EmployeeId(id))
