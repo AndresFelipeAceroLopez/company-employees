@@ -52,7 +52,8 @@
       "PowerShell(.\\\\mvnw.cmd -o test \"-Dtest=JjwtServiceTest\" -q 2>&1 | Select-String -Pattern \"Tests run|BUILD|ERROR|FAIL\" ; \"EXIT=$LASTEXITCODE\")",
       "PowerShell(.\\\\mvnw.cmd -o test-compile -q; \"COMPILE_EXIT=$LASTEXITCODE\")",
       "Bash(git checkout *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\maria\\company-employees-front\\front",
