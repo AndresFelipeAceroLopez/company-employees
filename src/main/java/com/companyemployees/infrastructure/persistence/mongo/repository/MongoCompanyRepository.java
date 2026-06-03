@@ -34,6 +34,11 @@ public class MongoCompanyRepository implements CompanyRepository {
     }
 
     @Override
+    public long count() {
+        return mongoRepository.count();
+    }
+
+    @Override
     public Optional<Company> findById(CompanyId id) {
         return mongoRepository.findById(id.value())
                 .map(mapper::toDomain);

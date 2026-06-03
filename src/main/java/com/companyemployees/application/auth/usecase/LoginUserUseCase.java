@@ -1,5 +1,6 @@
 package com.companyemployees.application.auth.usecase;
 
+import com.companyemployees.application.auth.UserAuthorizationResolver;
 import com.companyemployees.application.auth.dto.AuthResult;
 import com.companyemployees.application.auth.dto.LoginUserCommand;
 import com.companyemployees.application.ports.repository.UserRepository;
@@ -19,13 +20,16 @@ public class LoginUserUseCase {
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
     private final JwtService jwtService;
+    private final UserAuthorizationResolver authorizationResolver;
 
     public LoginUserUseCase(UserRepository userRepository,
                             PasswordHasher passwordHasher,
-                            JwtService jwtService) {
+                            JwtService jwtService,
+                            UserAuthorizationResolver authorizationResolver) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
         this.jwtService = jwtService;
+        this.authorizationResolver = authorizationResolver;
     }
 
     public AuthResult execute(LoginUserCommand command) {
@@ -40,8 +44,14 @@ public class LoginUserUseCase {
             throw new InvalidCredentialsException("Credenciales invalidas");
         }
 
-        String token = jwtService.generateToken(user);
+        UserAuthorizationResolver.ResolvedAuthorization authz = authorizationResolver.resolve(user);
+        String token = jwtService.generateToken(
+                user.getId().value(), user.getCorreo(),
+                user.getCompaniaId() != null ? user.getCompaniaId().value() : null,
+                authz.roleNames(), authz.scopes());
+
         log.info("Login exitoso: {}", user.getCorreo());
-        return new AuthResult(token, jwtService.expirationSeconds(), AuthResult.AuthenticatedUser.from(user));
+        return new AuthResult(token, jwtService.expirationSeconds(),
+                AuthResult.AuthenticatedUser.of(user, authz.roleNames(), authz.scopes()));
     }
 }

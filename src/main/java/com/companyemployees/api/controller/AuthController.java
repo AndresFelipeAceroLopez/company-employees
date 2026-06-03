@@ -40,9 +40,12 @@ public class AuthController {
 
     @PostMapping("/registro")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        // Registro publico: SIEMPRE USUARIO ligado a su compania. No se aceptan roles ni
+        // scopes del cliente (roles=null, scopes=null) para evitar escalada de privilegios;
+        // el use case asigna el rol USUARIO por defecto.
         RegisterUserCommand command = new RegisterUserCommand(
                 request.nombre(), request.correo(), request.password(),
-                request.role(), request.companiaId()
+                null, null, request.companiaId()
         );
         AuthResult result = registerUserUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(AuthResponse.from(result));

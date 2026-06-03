@@ -1,5 +1,8 @@
 package com.companyemployees.api;
 
+import com.companyemployees.application.ports.security.JwtService;
+import com.companyemployees.infrastructure.persistence.mongo.document.PermissionDocument;
+import com.companyemployees.infrastructure.persistence.mongo.document.RoleDocument;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +20,9 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -52,9 +56,27 @@ abstract class AbstractMongoIntegrationTest {
     @Autowired
     protected MongoTemplate mongoTemplate;
 
+    @Autowired
+    protected JwtService jwtService;
+
     @BeforeEach
     void limpiarBaseDeDatos() {
         mongoTemplate.getCollectionNames().forEach(mongoTemplate::dropCollection);
+        seedRolesYPermisos();
+    }
+
+    /**
+     * Siembra las colecciones permissions y roles que el registro de usuarios necesita.
+     * Por simplicidad usa el scope como _id del permiso y el nombre como _id del rol.
+     */
+    private void seedRolesYPermisos() {
+        List<String> all = List.of("empleado:leer", "empleado:crear", "empleado:actualizar",
+                "empleado:eliminar", "compania:leer", "compania:crear", "compania:actualizar",
+                "compania:eliminar");
+        all.forEach(scope -> mongoTemplate.save(new PermissionDocument(scope, scope)));
+        // ADMIN: CRUD completo (todos los scopes). USUARIO: solo lectura de empleados.
+        mongoTemplate.save(new RoleDocument("ADMIN", "ADMIN", all));
+        mongoTemplate.save(new RoleDocument("USUARIO", "USUARIO", List.of("empleado:leer")));
     }
 
     protected String toJson(Object value) throws Exception {
@@ -77,21 +99,20 @@ abstract class AbstractMongoIntegrationTest {
         return mockMvc.perform(asyncDispatch(started));
     }
 
-    protected String tokenFor(String correo, String role, String companiaId) throws Exception {
-        Map<String, Object> body = new HashMap<>();
-        body.put("nombre", "Test User");
-        body.put("correo", correo);
-        body.put("password", "secret123");
-        body.put("role", role);
-        if (companiaId != null) {
-            body.put("companiaId", companiaId);
-        }
-        MvcResult res = mockMvc.perform(post("/api/auth/registro")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(body)))
-                .andExpect(status().isCreated())
-                .andReturn();
-        return objectMapper.readTree(res.getResponse().getContentAsString()).get("token").asText();
+    /**
+     * Acuna un token de prueba directamente con el {@link JwtService} (via confiable),
+     * en vez de pasar por /api/auth/registro — que es publico y solo crea USUARIO.
+     * Asi las pruebas obtienen un token con los scopes del rol indicado sin depender
+     * de la politica del endpoint publico. Los scopes replican el seed de roles del test.
+     */
+    protected String tokenFor(String correo, String role, String companiaId) {
+        String roleUpper = role.toUpperCase();
+        Set<String> scopes = "ADMIN".equals(roleUpper)
+                ? Set.of("empleado:leer", "empleado:crear", "empleado:actualizar", "empleado:eliminar",
+                        "compania:leer", "compania:crear", "compania:actualizar", "compania:eliminar")
+                : Set.of("empleado:leer");
+        return jwtService.generateToken("test-" + correo, correo, companiaId,
+                Set.of(roleUpper), scopes);
     }
 
     protected String createCompany(String token, String nombre) throws Exception {

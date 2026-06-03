@@ -52,6 +52,31 @@ public class Company {
         this.telefono = telefono;
     }
 
+    /**
+     * Aplica un cambio parcial: solo modifica los campos con valor no nulo.
+     * Cada campo presente debe cumplir su invariante (no vacio).
+     */
+    public void applyPatch(String nombre, String direccion, String telefono) {
+        if (nombre != null) {
+            if (nombre.isBlank()) {
+                throw new IllegalArgumentException("El nombre de la compania es obligatorio");
+            }
+            this.nombre = nombre;
+        }
+        if (direccion != null) {
+            if (direccion.isBlank()) {
+                throw new IllegalArgumentException("La direccion de la compania es obligatoria");
+            }
+            this.direccion = direccion;
+        }
+        if (telefono != null) {
+            if (telefono.isBlank()) {
+                throw new IllegalArgumentException("El telefono de la compania es obligatorio");
+            }
+            this.telefono = telefono;
+        }
+    }
+
     private static void validate(String nombre, String direccion, String telefono) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre de la compania es obligatorio");

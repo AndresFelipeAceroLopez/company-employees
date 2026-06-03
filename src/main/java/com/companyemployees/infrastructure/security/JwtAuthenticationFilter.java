@@ -10,16 +10,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Lee el header Authorization: Bearer <token>, valida el JWT y popula el SecurityContext.
+ * Mapea los claims a authorities de Spring Security:
+ *   - cada rol  -> "ROLE_<rol>"   (para hasRole / hasAnyRole)
+ *   - cada scope -> "SCOPE_<scope>" (para hasAuthority / autorizacion fina)
  * Si el header no esta o el token es invalido, simplemente no autentica (los entrypoints
  * publicos siguen funcionando y los protegidos responden 401 por defecto).
  */
@@ -44,13 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(PREFIX.length()).trim();
             try {
                 JwtService.JwtClaims claims = jwtService.parse(token);
+                Set<String> roles = new LinkedHashSet<>(claims.roles());
+                Set<String> scopes = new LinkedHashSet<>(claims.scopes());
+
                 AuthenticatedPrincipal principal = new AuthenticatedPrincipal(
-                        claims.userId(), claims.correo(), claims.role(), claims.companiaId());
+                        claims.userId(), claims.correo(), claims.companiaId(), roles, scopes);
                 AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        principal,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + claims.role()))
-                );
+                        principal, null, buildAuthorities(roles, scopes));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception ex) {
                 log.debug("Token JWT rechazado: {}", ex.getMessage());
@@ -58,5 +65,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    private static List<GrantedAuthority> buildAuthorities(Set<String> roles, Set<String> scopes) {
+        List<GrantedAuthority> authorities = new ArrayList<>(roles.size() + scopes.size());
+        for (String role : roles) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+        }
+        for (String scope : scopes) {
+            authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope));
+        }
+        return authorities;
     }
 }
