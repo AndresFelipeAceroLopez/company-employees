@@ -63,7 +63,11 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(java.util.List.of("*"));
         config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(java.util.List.of("*"));
-        config.setExposedHeaders(java.util.List.of("Authorization"));
+        // Cabeceras que el front (otro origen) puede LEER desde JS:
+        //  - Authorization: token devuelto en algunos flujos.
+        //  - X-Total-Count: total de elementos en respuestas HEAD (conteo sin cuerpo).
+        //  - Allow: verbos permitidos al usuario en respuestas OPTIONS (por scopes).
+        config.setExposedHeaders(java.util.List.of("Authorization", "X-Total-Count", "Allow"));
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
                 new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
