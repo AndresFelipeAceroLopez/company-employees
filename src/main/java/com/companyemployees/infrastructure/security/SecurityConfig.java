@@ -61,7 +61,7 @@ public class SecurityConfig {
         org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
         // Origenes del front en desarrollo (Live Server, http-server, etc.).
         config.setAllowedOriginPatterns(java.util.List.of("*"));
-        config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(java.util.List.of("*"));
         // Cabeceras que el front (otro origen) puede LEER desde JS:
         //  - Authorization: token devuelto en algunos flujos.

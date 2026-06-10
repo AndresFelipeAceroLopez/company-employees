@@ -53,7 +53,21 @@
       "PowerShell(.\\\\mvnw.cmd -o test-compile -q; \"COMPILE_EXIT=$LASTEXITCODE\")",
       "Bash(git checkout *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(mvnw.cmd spring-boot:run -q)",
+      "Bash(Start-Sleep -Seconds 20)",
+      "Bash(Get-Content \"C:\\\\Users\\\\maria\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-maria-company-employees\\\\769acbf8-2150-487e-bce5-866adbad9a6e\\\\tasks\\\\bfmi6blmx.output\" -Tail 30)",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd /d C:\\\\Users\\\\maria\\\\company-employees && mvnw.cmd spring-boot:run\" -WindowStyle Hidden -PassThru)",
+      "PowerShell($maxWait = 60; $waited = 0; do { Start-Sleep -Seconds 3; $waited += 3; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/actuator/health\" -TimeoutSec 2 -ErrorAction Stop; Write-Host \"UP after ${waited}s: $\\($r.StatusCode\\)\"; break } catch { Write-Host \"Waiting... ${waited}s\" } } while \\($waited -lt $maxWait\\); if \\($waited -ge $maxWait\\) { Write-Host \"TIMEOUT\" })",
+      "PowerShell(Start-Sleep -Seconds 15; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/actuator/health\" -TimeoutSec 5 -ErrorAction Stop; \"STATUS: $\\($r.StatusCode\\) - $\\($r.Content\\)\" } catch { $_.Exception.Message })",
+      "PowerShell(netstat -ano | Select-String \":8080|:8443\"; Start-Sleep -Seconds 5; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/actuator/health\" -TimeoutSec 5 -ErrorAction Stop; \"STATUS: $\\($r.StatusCode\\)\"; $r.Content } catch { \"FALLO: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Get-Process -Name \"java\" -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, CPU, @{N='Mem\\(MB\\)';E={[math]::Round\\($_.WS/1MB,1\\)}}, StartTime)",
+      "PowerShell($maxWait = 90; $waited = 0; do { Start-Sleep -Seconds 5; $waited += 5; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/actuator/health\" -TimeoutSec 3 -ErrorAction Stop; \"UP despues de ${waited}s: $\\($r.StatusCode\\)\"; $r.Content; break } catch { Write-Host \"Esperando... ${waited}s\" } } while \\($waited -lt $maxWait\\); if \\($waited -ge $maxWait\\) { \"TIMEOUT sin respuesta\" })",
+      "PowerShell(Stop-Process -Name \"java\" -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process -Name \"java\" -ErrorAction SilentlyContinue | Select-Object Id, CPU, @{N='Mem\\(MB\\)';E={[math]::Round\\($_.WS/1MB,1\\)}})",
+      "PowerShell($maxWait = 120; $waited = 0; do { Start-Sleep -Seconds 5; $waited += 5; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/actuator/health\" -TimeoutSec 3 -ErrorAction Stop; \"UP en ${waited}s - HTTP $\\($r.StatusCode\\)\"; $r.Content; break } catch { Write-Host \"Esperando... ${waited}s\" } } while \\($waited -lt $maxWait\\); if \\($waited -ge $maxWait\\) { \"TIMEOUT\" })",
+      "Bash(curl -s -o /dev/null -D - -X OPTIONS http://localhost:8080/api/companias -H 'Origin: http://127.0.0.1:5500' -H 'Access-Control-Request-Method: HEAD' -H 'Access-Control-Request-Headers: authorization')",
+      "Bash(curl -s -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@company.local\",\"password\":\"Admin123!\"}')"
     ],
     "additionalDirectories": [
       "C:\\Users\\maria\\company-employees-front\\front",
